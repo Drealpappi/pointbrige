@@ -1,0 +1,85 @@
+<div class="glass-card max-w-md mx-auto p-6 rounded-2xl border-white/10 bg-white/5 backdrop-bur-md shadow-xl">
+    <h3 class="text-xl font-bold text-gray-100 mb-4">Redeem Reward Points</h3>
+    <div class="space-y-2 mb-6">
+        <p class="text-sm text-gray-400">Available Points:
+            <span id="display-points" class="font-semibold text-emerald-400">Loading....</span>
+        </p>
+        <p class="text-sm text-gray-400">Wallet Balance:
+            <span id="display-balance" class="font-semibold text-blue-400">Loading....</span>
+        </p>
+    </div>
+    <form id="redemption-form" class="space-y-4">
+        {% csrf_token %}
+        <div class="relative">
+            <input type="number" id="points-input" min="1000" placeholder="Enter points" class="w-full px-4 py-3 bg-whote/ border-white/10 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:boder-emerald-500 transition-colors" required>
+        </div>
+        <button type="submit" id="redeem-btn" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
+            Redeem Points
+        </button>
+    </form>
+    <div id="response-message" class="mt-4 text-center text-sm font-medium"></div>
+</div>
+
+<script>
+    (function(){
+        const attachFormListerner = () => {
+            const redemptionForm = document.getElementById('redemption-form');
+            if (redemptionForm) {
+                redemptionForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const pointsInput = document.getElementById('points-input');
+                    const redeemBtn = document.getElementById('redeem-btn');
+                    const messageDiv = document.getElementById('response-message');
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const pointsToRedeem = parseInt(pointsInput.value, 10);
+
+                    messageDiv.innerText = '';
+                    messageDiv.className = '';
+                    redeemBtn.disabled = true;
+                    redeemBtn.innerText = 'Processing Transaction....';
+
+                    try {
+                        const response = await fetch('/api/transaction/redeem/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
+                            },
+                            body: JSON.stringify({ points: pointsToRedeem })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            messageDiv.innerText = '${result.message || "Redemption successful!"}';
+                            messageDiv.className = "mt-4 text-center text-sm font-medium text-emerald-400";
+                            
+
+                            document.getElementById('display-balance').innerText = '#${result.data.wallet_balance}';
+
+                            const pointsEl = document.getElementById('display-points');
+                            pointsEl.innerText = parseInt(pointsEl.innerText) - pointsToRedeem;
+                            pointsInput.value = '';
+                        } else {
+                            messageDiv.className = 'mt-4 text-center text-sm font-medium text-red-400';
+                            messageDiv.innerText = result.error || 'An error occurred during redemption.';
+                        }
+                    } catch (error) {
+                        console.error('Redemption Error:', error);
+                        messageDiv.innerText = 'An unexpected error occurred. Please try again later.';
+                        messageDiv.className = 'mt-4 text-center text-sm font-medium text-red-400';
+                    } finally {
+                        redeemBtn.disabled = false;
+                        redeemBtn.innerText = 'Redeem Points';
+                    }
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachFormListerner);
+            } else {
+                attachFormListerner();
+            }
+    };
+})();
+</script>

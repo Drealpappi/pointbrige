@@ -1,0 +1,298 @@
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PointBridge — Executive Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%), 
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-card {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100 font-sans antialiased selection:bg-emerald-500/30">
+
+    <!-- Global App Header -->
+    <header class="w-full border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Brand Logo -->
+            <div class="text-xl font-black tracking-widest bg-gradient-to-r from-blue-500 to-emerald-400 bg-clip-text text-transparent">
+                POINTBRIDGE
+            </div>
+
+            <!-- Profile Overview Header Widget -->
+            <div class="flex items-center gap-4">
+                <button id="profile-trigger" class="flex items-center gap-3 px-4 py-2 rounded-xl glass-panel hover:bg-white/10 transition-all cursor-pointer">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-blue-600 flex items-center justify-center font-bold text-sm text-white">
+                        U
+                    </div>
+                    <div class="text-left hidden sm:block">
+                        <p class="text-xs text-gray-400">Welcome back,</p>
+                        <p class="text-sm font-semibold text-gray-200" id="header-username">Loading...</p>
+                    </div>
+                </button>
+                <a href="/api/account/login/" class="px-4 py-2 text-xs font-semibold text-red-400 hover:text-red-300 glass-panel hover:bg-red-500/10 rounded-xl transition-all">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        
+        <!-- Welcome banner -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                Your Rewards Portal
+            </h1>
+            <p class="text-sm text-gray-400 mt-1">Convert your points balance into premium physical items and digital vouchers instantly.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Side Grid column (Balances, Actions, Info) -->
+            <div class="lg:col-span-1 space-y-8">
+                
+                <!-- Wallet Points Ledger Card -->
+                <div class="glass-panel p-6 rounded-3xl glow-card relative overflow-hidden">
+                    <div class="absolute -right-12 -top-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Account Points</h3>
+                    <div class="mt-4 flex items-baseline gap-2">
+                        <span id="wallet-balance-display" class="text-5xl font-black tracking-tight text-white">
+                            {% if wallet.balance is not None %}{{ wallet.balance }}{% else %}0{% endif %}
+                        </span>
+                        <span class="text-lg font-medium text-gray-500">PTS</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Value automatically synced with system ledger entries.</p>
+                </div>
+
+                <!-- Live Quick Profile Overview -->
+                <div class="glass-panel p-6 rounded-3xl space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Profile Ledger Overview</h3>
+                    <div class="space-y-3 pt-2">
+                        <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                            <span class="text-gray-400">First Name</span>
+                            <span id="profile-first-name" class="font-semibold text-white">---</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                            <span class="text-gray-400">Username</span>
+                            <span id="profile-username" class="font-semibold text-white">---</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">Primary Email</span>
+                            <span id="profile-email" class="font-semibold text-white">---</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side Grid column (Available Rewards Catalog Grid) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="flex items-center justify-between border-b border-white/5 pb-4">
+                    <h2 class="text-xl font-bold text-gray-200">Available Reward Store Items</h2>
+                    <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-semibold">Active Catalog</span>
+                </div>
+
+                <!-- Rewards Items Showcase Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    <!-- Reward Card 1 -->
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-all duration-300">
+                        <div>
+                            <div class="w-full h-32 bg-gradient-to-br from-indigo-500/20 to-purple-500/10 rounded-xl mb-4 border border-white/5 flex items-center justify-center relative overflow-hidden">
+                                <span class="text-4xl">🎮</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-indigo-400 tracking-wider uppercase">Voucher Code</span>
+                            <h4 class="text-lg font-bold text-white mt-1">Premium Gaming Pass</h4>
+                            <p class="text-xs text-gray-400 mt-2">Access 100+ standard and premium games on console or PC platform for 30 days.</p>
+                        </div>
+                        <div class="mt-6 flex items-center justify-between">
+                            <span class="text-md font-extrabold text-emerald-400">50 PTS</span>
+                            <button onclick="handleRedemption(1, 50, 'Premium Gaming Pass')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-md shadow-emerald-500/10">
+                                Redeem Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reward Card 2 -->
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-all duration-300">
+                        <div>
+                            <div class="w-full h-32 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-xl mb-4 border border-white/5 flex items-center justify-center relative overflow-hidden">
+                                <span class="text-4xl">☕</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">Coffee Voucher</span>
+                            <h4 class="text-lg font-bold text-white mt-1">PointBridge Brew Mug</h4>
+                            <p class="text-xs text-gray-400 mt-2">Get a medium drip, espresso-based beverage, or specialty hot beverage at partners.</p>
+                        </div>
+                        <div class="mt-6 flex items-center justify-between">
+                            <span class="text-md font-extrabold text-emerald-400">15 PTS</span>
+                            <button onclick="handleRedemption(2, 15, 'PointBridge Brew Mug')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-md shadow-emerald-500/10">
+                                Redeem Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reward Card 3 -->
+                    <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-all duration-300">
+                        <div>
+                            <div class="w-full h-32 bg-gradient-to-br from-amber-500/20 to-red-500/10 rounded-xl mb-4 border border-white/5 flex items-center justify-center relative overflow-hidden">
+                                <span class="text-4xl">🛍️</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-amber-400 tracking-wider uppercase">Gift Card</span>
+                            <h4 class="text-lg font-bold text-white mt-1">Ultimate Retail Voucher</h4>
+                            <p class="text-xs text-gray-400 mt-2">$25 universal gift voucher compatible with Amazon, BestBuy, and physical outlets.</p>
+                        </div>
+                        <div class="mt-6 flex items-center justify-between">
+                            <span class="text-md font-extrabold text-emerald-400">100 PTS</span>
+                            <button onclick="handleRedemption(3, 100, 'Ultimate Retail Voucher')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-md shadow-emerald-500/10">
+                                Redeem Item
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Interactive Feedback Toast Notification Element -->
+    <div id="toast-notif" class="fixed bottom-6 right-6 px-6 py-4 rounded-2xl glass-panel border-emerald-500/20 shadow-2xl z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-sm flex items-center gap-3">
+        <span id="toast-icon" class="text-xl">🚀</span>
+        <div>
+            <p id="toast-title" class="font-bold text-sm text-white">Notification</p>
+            <p id="toast-message" class="text-xs text-gray-400 mt-0.5">Details and telemetry results go here.</p>
+        </div>
+    </div>
+
+    <!-- Active JavaScript Controller -->
+    <script>
+        // Setup base authentication parameters (Using Django's template engine safely or fallback)
+        const csrfToken = "{{ csrf_token }}";
+
+        // Global Toast Display Handler
+        function showNotification(title, message, isSuccess = true) {
+            const toast = document.getElementById('toast-notif');
+            const icon = document.getElementById('toast-icon');
+            const tTitle = document.getElementById('toast-title');
+            const tMessage = document.getElementById('toast-message');
+
+            icon.innerText = isSuccess ? "✅" : "⚠️";
+            tTitle.innerText = title;
+            tTitle.className = isSuccess ? "font-bold text-sm text-emerald-400" : "font-bold text-sm text-red-400";
+            tMessage.innerText = message;
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 4000);
+        }
+
+        // Fetching user data on initialization
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/account/profile/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('header-username').innerText = data.username || 'User';
+                    document.getElementById('profile-first-name').innerText = data.first_name || 'N/A';
+                    document.getElementById('profile-username').innerText = data.username || 'N/A';
+                    document.getElementById('profile-email').innerText = data.email || 'N/A';
+                } else {
+                    applyFallbackProfile();
+                }
+            } catch (err) {
+                applyFallbackProfile();
+            }
+        }
+
+        // Applying a clean local data states if dynamic API endpoint is offline
+        function applyFallbackProfile() {
+            document.getElementById('header-username').innerText = 'Festus';
+            document.getElementById('profile-first-name').innerText = 'Festus';
+            document.getElementById('profile-username').innerText = 'festus_pb';
+            document.getElementById('profile-email').innerText = 'festus@pointbridge.com';
+            
+            // Checking if backend template variables exist before overwriting
+            const balanceText = document.getElementById('wallet-balance-display').innerText.trim();
+            if (balanceText === "0" || balanceText === "") {
+                document.getElementById('wallet-balance-display').innerText = '120';
+            }
+        }
+
+        // Handle points redemption form triggers
+        async function handleRedemption(rewardId, pointsCost, rewardName) {
+            try {
+                const response = await fetch('/api/transactions/redeem/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        reward_id: rewardId,
+                        points: pointsCost,
+                        reward_name: rewardName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showNotification(
+                        "Redemption Complete!", 
+                        `You have successfully acquired: ${rewardName}.`, 
+                        true
+                    );
+                    
+                    // Dynamically update the ledger value on page
+                    if (result.data && result.data.new_balance !== undefined) {
+                        document.getElementById('wallet-balance-display').innerText = result.data.new_balance;
+                    } else if (result.new_balance !== undefined) {
+                        document.getElementById('wallet-balance-display').innerText = result.new_balance;
+                    }
+                } else {
+                    const errMsg = result.error || result.message || "Failed to complete redemption request.";
+                    showNotification("Redemption Rejected", errMsg, false);
+                }
+            } catch (err) {
+                showNotification("Network Connection Error", "Could not reach transaction authorization center.", false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+        });
+    </script>
+</body>
+</html>

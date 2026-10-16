@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>POINTBRIDGE - DASHBOARD</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            .mesh-bg {
+                background-color: #0b0f19;
+                background-image: 
+                    radial-gradient(at 0% 0%, hsla(243,98%,41%,0.15) 0, transparent 50%),
+                    radial-gradient(at 100% 0%, hsla(142,71%,45%,0.1) 0, transparent 50%),
+                    radial-gradient(at 50% 0%, hsla(240,5%,15%,0.5) 0, transparent 50%);
+
+            }
+
+            .glass-card {
+                background: rgba(255, 255, 255, 0.03);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+            }
+        </style>
+    </head>
+    <body class="mesh-bg text-gray-100 min-h-screen font-sans flex flex-col justify-between">
+        <nav class="borde-b border-gray-800 bg-gray-900/40 backdrop-blur-md px-6 py-4 flex justify-between items-center">
+            <div class="flex itmes-center gap-2">
+                <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-emerald-400">
+                    POINTBRIDGE
+                </span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-40"> Welcome, <strong class="text-gray-200">{{ request.user.username|default:"User"}}</strong></span>
+                <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center font-bold text-sm">
+                    {{ request.user.username|slice:"1"|upper|default:"U"}}
+                </div>
+            </div>
+        </nav>
+        <main class="class max-w-4xl w-full mx-auto p-6 my-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 items-start">
+                <div class="space-y-6">
+
+                </div>
+                <div>
+                    {% include 'redeem.html' %}
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+                    <div class="class absolute -right-10 -top-10 w-32 bg-blue-600/10 rounded-full blur-2xl"></div>
+                    <h4 class="text-xs font-semibold tracking-wider text-gray-400 uppercase mb-1">Available Rewards</h4>
+                    <h2 class="text-4xl font-black text-blue-400 tracking-tight">
+                        <span id="display-points">{{ wallet.points }}</span><span class="text-xs text-gray-400 font-medium">PTS</span>
+                    </h2>
+                    <div class="mt-4 pt-4 border-t border-gray-800/60 flex justify-between text-xs text-gray-400">
+                        <span>Mininmum redemption: 1,000 PTS</span>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                    <h4 class="text-xs font-semibold tracking-wider text-gray-400 uppercase mb-1">Wallet Cash Balance</h4>
+                    <h2 class="text-4xl font-black text-emerald-400 tracking-tight">
+                        <span id="display-balance">{{ wallet.balance }}</span>
+                    </h2>
+                    <div class="mt-4 pt-4 border-t border-gray-800/60 flex justify-between text-xs text-gray-400">
+                        <span>Instant payouts active</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="glass-card rounded-3l p-8 max-w-xl mx-auto shadow-2xl">
+                <h3 class="text-xl font-bold mb-2 text-gray-100 flex items-center gap-2">
+                    Redeem Points For Cash
+                </h3>
+                <p class="text-sm text-gray-400 mb-6">Convert your reward directly into spending cash balance seamlessly.</p>
+                <form id="redemption-form" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label for="points-input" class="block text-xs font-medium text-gray-400 uppercase mb-2 tracking-wider">Amount of Points to Redeem</label>
+                        <input type="number" id="points-input" min="1000" step="1000"
+                        class="w-full bg-gray-950/60 border border-gray-800 rounded-2xl px-4 py-3.5 text-gray-100 focus:outline-none focus:border-blue-500 transition-all text-lg font-medium tracking-wide"
+                        placeholder="Enter points (e.g., 1000)" required>
+                    </div>
+                    <button type="submit" id="redeem-btn"
+                            class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 active:scale[0.99] transition-all text-white font-semibold py-3.5 px-4 rounded-2xl shadow-lg shadow-blue-900/20 text-center tracking-wide mt-2">
+                        Redeem Points
+                    </button>
+                </form>
+                <div id="response-message" class="mt-4 text-sm font-medium transition-all"></div>
+            </div>
+        </main>
+        <footer class="text-center py-6 text-xs text-gray-600 border-t border-gray-900">
+            &copy; 2026 PointBridge Platform. Built securely
+        </footer>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const redemptionForm = document.getElementById('redemption-form');
+                
+                if (redemptionForm) {
+                    redemptionForm.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        console.log("Form submission triggered");
+
+                        const pointsInput = document.getElementById('points-input');
+                        const redeemBtn = document.getElementById('redeem-btn');
+                        const messageDiv = document.getElementById('response-message');
+                        const pointsToRedeem = parseInt(pointsInput.value);
+                        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                        messageDiv.innerText = '';
+                        messageDiv.style.color ='';
+                        redeemBtn.disabled = true;
+                        redeemBtn.innerText = 'Processing Transaction....';
+
+                        try{
+                            const response = await fetch('/api/transactions/redeem/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrfToken
+                                },
+                                body: JSON.stringify({ points: pointsToRedeem })
+                            });
+                            const result = await response.json();
+                    
+                            if (response.ok) {
+                                messageDiv.style.color = '#10b981';
+                                messageDiv.innerText = '${result.message}';
+
+                                document.getElementById('display-balance').innerText ='#${result.data.wallet_balance}';
+                                documet.getElementById('display-points').innerText = parseInt(document.getElementById('display-points').innerText) - pointsToRedeem;
+                                pointsInput.value = '';
+                            } else{
+                                messageDiv.style.color = '#ef4444';
+                                messageDiv.innerText = result.error || 'An error occurred during redemption.';
+                            }
+                        } catch (error) {
+                            messageDiv.style.color = '#ef4444';
+                            messageDiv.innerText = 'Network error. Please try again later.';
+                            cosole.error('Redemption Error:', error);
+                        } finally {
+                            redeemBtn.disable = false;
+                            redeemBtn.innerText = 'Redeem Points';
+                        }
+                    });
+                    console.log("Form listener bound successfully!!")
+                } else {
+                    console.error("Could not find the element with ID 'redemption-form' inside the HTML structure.");
+
+                }
+            });
+        </script>
+    </body>
+</html>

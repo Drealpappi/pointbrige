@@ -1,0 +1,155 @@
+<!-- rewards/templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PointBridge — Access Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            background-image: 
+                radial-gradient(at 0% 100%, rgba(37, 99, 235, 0.12) 0px, transparent 50%), 
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-gray-100 font-sans antialiased selection:bg-emerald-500/30">
+    <nav class="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+        <div class="text-xl font-black tracking-widest bg-gradient-to-r from-blue-500 to-emerald-400 bg-clip-text text-transparent">
+            POINTBRIDGE
+        </div>
+        <a href="/api/account/register/" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">
+            Register Account &rarr;
+        </a>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-md glass-card p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-100 tracking-tight">Welcome back</h2>
+                <p class="text-sm text-gray-400 mt-2">Sign in to access your dashboard and claim your points.</p>
+            </div>
+
+            <form id="login-form" method="POST" action="/api/account/login/" class="space-y-5">
+                {% csrf_token %}
+                <div>
+                    <label for="email" class="block text-xs font-semibold tracking-wider text-gray-400 uppercase mb-2">Email Address</label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           placeholder="you@example.com" 
+                           class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                           required>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="password" class="block text-xs font-semibold tracking-wider text-gray-400 uppercase">Password</label>
+                        <a href="/api/account/forgot_password/" class="text-[11px] text-gray-400 hover:text-emerald-400 transition-colors">Forgot Password?</a>
+                    </div>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           placeholder="••••••••" 
+                           class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                           required>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="remember_me" 
+                               name="remember_me"
+                               class="w-4 h-4 rounded border-white/10 bg-black/40 text-emerald-500 focus:ring-0 accent-emerald-500 cursor-pointer">
+                        <label for="remember_me" class="ml-2 text-xs text-gray-400 select-none cursor-pointer">
+                            Keep me logged in
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        id="submit-btn" 
+                        class="w-full py-3.5 mt-2 bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/10 active:scale-[0.99] flex justify-center items-center">
+                    Sign In
+                </button>
+            </form>
+
+            <div id="status-message" class="mt-4 text-center text-xs font-medium hidden"></div>
+
+            
+            <div class="mt-6 pt-6 border-t border-white/5 text-center text-xs text-gray-400">
+                New to the platform? 
+                <a href="/api/account/register/" class="font-semibold text-emerald-400 hover:underline transition-all ml-1">Create an account</a>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="w-full text-center py-6 text-[11px] text-gray-600 tracking-wider border-t border-white/5 bg-black/10">
+        &copy; 2026 PointBridge Platform. Secured with cryptographic mechanics.
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('login-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const statusMessage = document.getElementById('status-message');
+
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                statusMessage.classList.add('hidden');
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Verifying credentials...';
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        statusMessage.className = "mt-4 text-center text-xs font-medium text-emerald-400 block";
+                        statusMessage.innerText = "🔑 Authentication successful! Entering dashboard...";
+                        setTimeout(() => {
+                            window.location.href = '/api/account/home/'; 
+                        }, 1200);
+                    } else {
+                        statusMessage.className = "mt-4 text-center text-xs font-medium text-red-400 block";
+                        
+                        if (result.error && typeof result.error === 'object') {
+                            const errorMsg = Object.values(result.error).flat().join(' ');
+                            statusMessage.innerText = errorMsg;
+                        } else {
+                            statusMessage.innerText = result.message || 'Invalid email or password.';
+                        }
+                        
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = 'Sign In';
+                    }
+                } catch (err) {
+                    statusMessage.className = "mt-4 text-center text-xs font-medium text-red-400 block";
+                    statusMessage.innerText = 'Network connection failed. Please try again.';
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Sign In';
+                }
+            });
+        }
+    });
+    </script>
+
+</body>
+</html>
